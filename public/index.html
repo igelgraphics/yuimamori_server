@@ -27,32 +27,37 @@
       <p id="error-message" style="color: red;"></p>
     </div>
 
-    <script type="module">
-      // Firebase Configuration
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-      import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyB5MgxGrtbv1fbeofgl-HXFFcrVXGGW6oA",
-        authDomain: "yuimamori-2cd2e.firebaseapp.com",
-        projectId: "yuimamori-2cd2e",
-        storageBucket: "yuimamori-2cd2e.firebasestorage.app",
-        messagingSenderId: "1024906818297",
-        appId: "1:1024906818297:web:01458f8cca582b27356828"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-
-      // Login Form
-      const loginForm = document.getElementById("login-form");
-      const errorMessage = document.getElementById("error-message");
-
-      loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        try {
-          const userCredential =
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+              apiKey: "AIzaSyB5MgxGrtbv1fbeofgl-HXFFcrVXGGW6oA",
+              authDomain: "yuimamori-2cd2e.firebaseapp.com",
+              projectId: "yuimamori-2cd2e",
+              storageBucket: "yuimamori-2cd2e.firebasestorage.app",
+              messagingSenderId: "1024906818297",
+              appId: "1:1024906818297:web:01458f8cca582b27356828"
+        };
+  
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+  
+        // DOM Elements
+        const loginForm = document.getElementById("login-form");
+        const authContainer = document.getElementById("auth-container");
+  
+        // Login Event
+        loginForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+  
+          try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            // 認証成功時にmap.htmlへ遷移
+            window.location.href = "map.html";
+          } catch (error) {
+            alert(error.message);
+          }
+        });
+      </script>
