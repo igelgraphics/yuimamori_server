@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Tracker</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            databaseURL: "https://your-project-id.firebaseio.com/",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database(app);
+
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: { lat: 35.658034, lng: 139.751599 } // 初期位置（東京タワー）
+            });
+
+            const markers = {};
+            const locationsRef = firebase.database().ref('locations');
+
+            locationsRef.on('child_added', (snapshot) => {
+                const location = snapshot.val();
+                const marker = new google.maps.Marker({
+                    position: { lat: location.latitude, lng: location.longitude },
+                    map: map,
+                    title: `Timestamp: ${location.timestamp}`
+                });
+                markers[snapshot.key] = marker;
+            });
+        }
+    </script>
+</head>
+<body onload="initMap()">
+    <h1>Location Tracker</h1>
+    <div id="map" style="width: 100%; height: 500px;"></div>
+</body>
+</html>
