@@ -1,15 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Tracker</title>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkYZyPbA5DiBUOh_gLmlAHdsVNSLFsZ9E"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firebase Authentication Example</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="auth-container">
+      <h1>Sign In</h1>
+      <form id="login-form">
+        <label>Email:</label><br />
+        <input type="email" id="email" required /><br />
+        <label>Password:</label><br />
+        <input type="password" id="password" required /><br /><br />
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+
     <script>
-        // Firebase設定
-        const firebaseConfig = {
+      // Firebase Configuration
+      const firebaseConfig = {
             apiKey: "AIzaSyB5MgxGrtbv1fbeofgl-HXFFcrVXGGW6oA",
             authDomain: "yuimamori-2cd2e.firebaseapp.com",
             databaseURL: "https://yuimamori-2cd2e-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -17,33 +36,30 @@
             storageBucket: "yuimamori-2cd2e.firebasestorage.app",
             messagingSenderId: "1024906818297",
             appId: "1:1024906818297:web:01458f8cca582b27356828"
-        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database(app);
+      };
 
-        function initMap() {
-            const map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 15,
-                center: { lat: 35.658034, lng: 139.751599 } // 初期位置（東京タワー）
-            });
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
 
-            const markers = {};
-            const locationsRef = firebase.database().ref('locations');
+      // DOM Elements
+      const loginForm = document.getElementById("login-form");
+      const authContainer = document.getElementById("auth-container");
 
-            locationsRef.on('child_added', (snapshot) => {
-                const location = snapshot.val();
-                const marker = new google.maps.Marker({
-                    position: { lat: location.latitude, lng: location.longitude },
-                    map: map,
-                    title: `Timestamp: ${location.timestamp}`
-                });
-                markers[snapshot.key] = marker;
-            });
+      // Login Event
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+          const userCredential = await auth.signInWithEmailAndPassword(email, password);
+          // 認証成功時にmap.htmlへ遷移
+          window.location.href = "map.html";
+        } catch (error) {
+          alert(error.message);
         }
+      });
     </script>
-</head>
-<body onload="initMap()">
-    <h1>Location Tracker</h1>
-    <div id="map" style="width: 100%; height: 500px;"></div>
-</body>
+  </body>
 </html>
