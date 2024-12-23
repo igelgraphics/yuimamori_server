@@ -4,4 +4,3 @@ entrypoint: gunicorn -w 2 -b :$PORT main:app
 handlers:
   - url: /.*
     script: auto
-
