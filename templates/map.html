@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Tracker</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkYZyPbA5DiBUOh_gLmlAHdsVNSLFsZ9E"></script>
+    <script>
+        async function fetchLocations() {
+            const response = await fetch('https://yuimamori.appspot.com/locations');
+            const data = await response.json();
+            return data;
+        }
+
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 35.658034, lng: 139.751599 },
+                zoom: 15
+            });
+
+            setInterval(async () => {
+                const locations = await fetchLocations();
+                locations.forEach(location => {
+                    new google.maps.Marker({
+                        position: { lat: location.latitude, lng: location.longitude },
+                        map: map
+                    });
+                });
+            }, 5000);
+        }
+    </script>
+</head>
+<body onload="initMap()">
+    <h1>Location Tracker</h1>
+    <div id="map" style="width: 100%; height: 500px;"></div>
+</body>
+</html>

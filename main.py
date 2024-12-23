@@ -34,8 +34,7 @@ def login_required(f):
 @app.route('/')
 def home():
     if 'google_token' in session:
-        user_info = google.get('userinfo').data
-        return render_template('dashboard.html', email=user_info['email'])
+        return redirect(url_for('map'))  # ログイン後はマップページにリダイレクト
     return render_template('login.html')  # ログイン画面を表示
 
 @app.route('/login')
@@ -68,20 +67,18 @@ def authorized():
         return "Access denied: Your account is not authorized."
 
     session['user'] = user_info
-    return redirect(url_for('index'))
-
+    return redirect(url_for('map'))  # ログイン後にマップページへリダイレクト
 
 @google.tokengetter
 def get_google_oauth_token():
     # セッションからトークンを取得
     return session.get('google_token')
 
-# ログイン後にのみアクセス可能なコンテンツ
-@app.route('/protected')
+# ログイン後に表示するマップページ
+@app.route('/map')
 @login_required
-def protected_content():
-    user_info = google.get('userinfo').data
-    return f"Protected content for {user_info['email']}"
+def map():
+    return render_template('map.html')  # マップページを表示
 
 if __name__ == '__main__':
     # ホストとポートを指定して実行
