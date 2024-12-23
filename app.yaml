@@ -9,3 +9,4 @@ env_variables:
   GOOGLE_CLIENT_ID: ""
   GOOGLE_CLIENT_SECRET: ""
   SECRET_KEY: ""
+  ALLOWED_USERS: ""

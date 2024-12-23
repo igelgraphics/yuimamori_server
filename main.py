@@ -50,7 +50,6 @@ def logout():
 
 @app.route('/oauth2callback')
 def authorized():
-    # Googleからの応答を処理
     response = google.authorized_response()
     if response is None or response.get('access_token') is None:
         return 'Access denied: reason={} error={}'.format(
@@ -61,7 +60,16 @@ def authorized():
     # アクセストークンをセッションに保存
     session['google_token'] = (response['access_token'], '')
     user_info = google.get('userinfo').data
-    return redirect(url_for('home'))
+
+    # 許可リストのチェック
+    allowed_users = os.getenv("ALLOWED_USERS", "").split(",")
+    if user_info['email'] not in allowed_users:
+        session.pop('google_token', None)
+        return "Access denied: Your account is not authorized."
+
+    session['user'] = user_info
+    return redirect(url_for('index'))
+
 
 @google.tokengetter
 def get_google_oauth_token():
