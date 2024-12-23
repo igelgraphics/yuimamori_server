@@ -4,3 +4,8 @@ entrypoint: gunicorn -w 2 -b :$PORT main:app
 handlers:
   - url: /.*
     script: auto
+
+env_variables:
+  GOOGLE_CLIENT_ID: ""
+  GOOGLE_CLIENT_SECRET: ""
+  SECRET_KEY: ""
