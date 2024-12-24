@@ -2,36 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Tracker</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkYZyPbA5DiBUOh_gLmlAHdsVNSLFsZ9E"></script>
+    <title>Google Map</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
     <script>
-        async function fetchLocations() {
-            const response = await fetch('https://yuimamori.appspot.com/locations');
-            const data = await response.json();
-            return data;
-        }
-
-        function initMap() {
-            const map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 35.658034, lng: 139.751599 },
-                zoom: 15
+        async function initMap() {
+            // Google Maps を初期化
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 35.658034, lng: 139.751599 }, // 東京タワー付近
+                zoom: 10,
             });
 
-            setInterval(async () => {
-                const locations = await fetchLocations();
-                locations.forEach(location => {
-                    new google.maps.Marker({
-                        position: { lat: location.latitude, lng: location.longitude },
-                        map: map
-                    });
+            // サーバーから位置データを取得
+            const response = await fetch("/api/locations");
+            const locations = await response.json();
+
+            // マップにマーカーを追加
+            locations.forEach(location => {
+                new google.maps.Marker({
+                    position: { lat: parseFloat(location.latitude), lng: parseFloat(location.longitude) },
+                    map: map,
+                    title: location.timestamp
                 });
-            }, 5000);
+            });
         }
     </script>
 </head>
 <body onload="initMap()">
-    <h1>Location Tracker</h1>
+    <h1>Location Map</h1>
     <div id="map" style="width: 100%; height: 500px;"></div>
+    <p><a href="{{ url_for('logout') }}">Logout</a></p>
 </body>
 </html>
