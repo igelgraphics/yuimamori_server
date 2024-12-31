@@ -3,27 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Google Map</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9G4-hyio03JsygZVMl8fvg_mCG3wp56U&libraries=marker" async defer></script>
     <script>
         async function initMap() {
-            // Google Maps を初期化
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 35.658034, lng: 139.751599 }, // 東京タワー付近
-                zoom: 10,
-            });
-
-            // サーバーから位置データを取得
-            const response = await fetch("/api/locations");
-            const locations = await response.json();
-
-            // マップにマーカーを追加
-            locations.forEach(location => {
-                new google.maps.Marker({
-                    position: { lat: parseFloat(location.latitude), lng: parseFloat(location.longitude) },
-                    map: map,
-                    title: location.timestamp
+            try {
+                // Google Maps を初期化
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    center: { lat: 35.658034, lng: 139.751599 },
+                    zoom: 10,
+                    mapId: "abe903fcc3e87ec9", // Map ID を指定
                 });
-            });
+
+                // サーバーから位置データを取得
+                const response = await fetch("/api/locations");
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const locations = await response.json();
+                if (locations.length === 0) {
+                    console.warn("No locations found.");
+                    return;
+                }
+
+                // マップにAdvancedMarkerElementを追加
+                locations.forEach(location => {
+                    console.log("Adding marker at:", location.latitude, location.longitude);
+
+                    // マーカー用のカスタム要素を作成
+                    const markerContent = document.createElement('div');
+                    markerContent.innerHTML = `
+                        <div style="
+                            background-color: red;
+                            color: white;
+                            font-size: 14px;
+                            font-weight: bold;
+                            text-align: center;
+                            width: 30px;
+                            height: 30px;
+                            line-height: 30px;
+                            border-radius: 50%;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                        ">
+                            ●
+                        </div>
+                    `;
+
+                    // AdvancedMarkerElement を作成
+                    const marker = new google.maps.marker.AdvancedMarkerElement({
+                        map: map,
+                        position: {
+                            lat: parseFloat(location.latitude),
+                            lng: parseFloat(location.longitude),
+                        },
+                        content: markerContent.firstElementChild, // HTML要素を直接指定
+                    });
+
+                    console.log("Marker added:", marker);
+                });
+
+            } catch (error) {
+                console.error("Failed to initialize map or fetch locations:", error);
+            }
         }
     </script>
 </head>

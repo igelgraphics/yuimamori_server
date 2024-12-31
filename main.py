@@ -1,19 +1,23 @@
 import os
-from flask import Flask, redirect, url_for, session, request, render_template
+from flask import Flask, redirect, url_for, session, render_template, jsonify
 from flask_oauthlib.client import OAuth
 from functools import wraps
+from google.cloud import bigquery
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")  # セッション管理のためのキー
+app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
+
+# BigQuery クライアント
+client = bigquery.Client()
 
 # OAuth 設定
 oauth = OAuth(app)
 google = oauth.remote_app(
     'google',
-    consumer_key=os.getenv("GOOGLE_CLIENT_ID"),  # 環境変数からクライアントIDを取得
-    consumer_secret=os.getenv("GOOGLE_CLIENT_SECRET"),  # 環境変数からクライアントシークレットを取得
+    consumer_key=os.getenv("GOOGLE_CLIENT_ID"),
+    consumer_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     request_token_params={
-        'scope': 'email',  # 必要なスコープを指定
+        'scope': 'email',
     },
     base_url='https://www.googleapis.com/oauth2/v1/',
     request_token_url=None,
@@ -34,8 +38,8 @@ def login_required(f):
 @app.route('/')
 def home():
     if 'google_token' in session:
-        return redirect(url_for('map'))  # ログイン後はマップページにリダイレクト
-    return render_template('login.html')  # ログイン画面を表示
+        return redirect(url_for('map'))
+    return render_template('login.html')
 
 @app.route('/login')
 def login():
@@ -43,7 +47,6 @@ def login():
 
 @app.route('/logout')
 def logout():
-    # セッションをクリアしてログアウト
     session.pop('google_token', None)
     return redirect(url_for('home'))
 
@@ -55,31 +58,40 @@ def authorized():
             request.args.get('error_reason'),
             request.args.get('error_description')
         )
-
-    # アクセストークンをセッションに保存
     session['google_token'] = (response['access_token'], '')
-    user_info = google.get('userinfo').data
-
-    # 許可リストのチェック
-    allowed_users = os.getenv("ALLOWED_USERS", "").split(",")
-    if user_info['email'] not in allowed_users:
-        session.pop('google_token', None)
-        return "Access denied: Your account is not authorized."
-
-    session['user'] = user_info
-    return redirect(url_for('map'))  # ログイン後にマップページへリダイレクト
+    return redirect(url_for('map'))
 
 @google.tokengetter
 def get_google_oauth_token():
-    # セッションからトークンを取得
     return session.get('google_token')
 
-# ログイン後に表示するマップページ
 @app.route('/map')
 @login_required
 def map():
-    return render_template('map.html')  # マップページを表示
+    return render_template('map.html')
+
+@app.route('/api/locations')
+@login_required
+def get_locations():
+    # BigQueryクエリ
+    query = """
+        SELECT latitude, longitude, timestamp
+        FROM `yuimamori-server.location_dataset.trackking_data`
+        ORDER BY timestamp DESC
+        LIMIT 100
+    """
+    query_job = client.query(query)
+    results = query_job.result()
+
+    # データをJSON形式に変換
+    locations = []
+    for row in results:
+        locations.append({
+            "latitude": row["latitude"],
+            "longitude": row["longitude"],
+            "timestamp": row["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        })
+    return jsonify(locations)
 
 if __name__ == '__main__':
-    # ホストとポートを指定して実行
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+    app.run(host='0.0.0.0', port=8080)
